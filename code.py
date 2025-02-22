@@ -104,7 +104,7 @@ async def send_quiz_to_group(context: ContextTypes.DEFAULT_TYPE):
 
 def main():
     persistence = PicklePersistence(filepath="bot_persistence")
-    app = Application.builder().token("5503691929:AAHruRPFP3998zJCM4PGHOnmltkFYyeu8zk").persistence(persistence).build()
+    app = Application.builder().token("7733999154:AAGofQ1u3J28cZ1u1q5TjKQ8_vvL1LcPxPc").persistence(persistence).build()
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("gcquiz", gcquiz))
