@@ -1,16 +1,15 @@
 import json
 import random
 import logging
-from datetime import timedelta
+import pytz
+from datetime import datetime
 from telegram import Update, Chat
 from telegram.ext import (
     Application, CommandHandler, ContextTypes, PicklePersistence
 )
 
 # Enable logging
-logging.basicConfig(
-    format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO
-)
+logging.basicConfig(format="%(asctime)s - %(levelname)s - %(message)s", level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 QUIZ_DATA = [
@@ -48,7 +47,6 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     chat = update.effective_chat  # This works for both groups and private chats
     chat_id = chat.id
 
-    # Ensure it's a group
     if chat.type not in [Chat.GROUP, Chat.SUPERGROUP]:
         await update.message.reply_text("This command must be used in a group.")
         return
@@ -77,11 +75,13 @@ async def gcquiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("Quiz is already running in this group!")
             return
 
+        timezone = pytz.utc  # Ensure timezone compatibility
+
         context.job_queue.run_repeating(
             send_quiz_to_group,
-            interval=timedelta(seconds=interval),
-            first=0,
-            chat_id=chat_id,
+            interval=interval,
+            first=datetime.now(timezone),  # Use pytz timezone
+            context=chat_id,  # Pass chat_id as context
             name=str(chat_id),
         )
         await update.message.reply_text("Started sending quizzes to this group.")
@@ -91,7 +91,7 @@ async def gcquiz(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def send_quiz_to_group(context: ContextTypes.DEFAULT_TYPE):
     """Send a random quiz to a group."""
     job = context.job
-    chat_id = job.chat_id
+    chat_id = job.context  # Fix: Use job.context instead of job.chat_id
     quiz = random.choice(QUIZ_DATA)
 
     await context.bot.send_poll(
