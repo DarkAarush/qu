@@ -1,17 +1,17 @@
 import logging
 import asyncio
-from aiogram import Bot, Dispatcher, types
+from aiogram import Bot, Dispatcher
 from aiogram.types import Message
 from aiogram.filters import Command
-from aiogram.enums import ParseMode
+from aiogram.client.default import DefaultBotProperties
 
 API_TOKEN = "5571306374:AAGsEQK3y5Qw8OzRcNLKxlxNAlbo1hoFykI"
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 
-# Initialize bot and dispatcher
-bot = Bot(token=API_TOKEN, parse_mode=ParseMode.HTML)
+# Initialize bot with updated syntax
+bot = Bot(token=API_TOKEN, default=DefaultBotProperties(parse_mode="HTML"))
 dp = Dispatcher()
 
 @dp.message(Command("start"))
