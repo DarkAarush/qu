@@ -10,5 +10,5 @@ return "Latitude: 25.4180301, Longitude: 82.5359179"
 
 Example usage
 
-imei_code = input("Enter IMEI: ") print("Validating IMEI...") time.sleep(1)  # Simulate validation delay location = get_fake_location(imei_code) print("Location:", location)
+if name == "main": imei_code = input("Enter IMEI: ") print("Validating IMEI...") time.sleep(1)  # Simulate validation delay location = get_fake_location(imei_code) print("Location:", location)
 
