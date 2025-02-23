@@ -7,7 +7,7 @@ def get_fake_location(imei):
         return "Invalid IMEI format"
     
     phone_models = [
-        "Samsung Galaxy S21", "Redmi 7A"
+        "Redmi 7A"
     ]
     phone_name = random.choice(1)
     
