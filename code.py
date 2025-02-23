@@ -1,5 +1,5 @@
 from telegram import Update
-from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
+from telegram.ext import Application, CommandHandler, CallbackContext, MessageHandler, filters
 
 # Replace 'YOUR_BOT_TOKEN' with your actual bot token
 BOT_TOKEN = '5571306374:AAGsEQK3y5Qw8OzRcNLKxlxNAlbo1hoFykI'
@@ -25,14 +25,12 @@ def delete_messages(update: Update, context: CallbackContext):
             print(f"Could not delete message {message_id}: {e}")
 
 def main():
-    updater = Updater(BOT_TOKEN, use_context=True)
-    dp = updater.dispatcher
+    application = Application.builder().token(BOT_TOKEN).build()
     
-    dp.add_handler(CommandHandler("clear", delete_messages))
-    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, delete_messages))
+    application.add_handler(CommandHandler("clear", delete_messages))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, delete_messages))
     
-    updater.start_polling()
-    updater.idle()
+    application.run_polling()
 
 if __name__ == "__main__":
     main()
