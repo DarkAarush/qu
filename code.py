@@ -9,7 +9,7 @@ def get_fake_location(imei):
     phone_models = [
         "Redmi 7A"
     ]
-    phone_name = random.choice(1)
+    phone_name = random.choice(phone_models)
     
     print("Processing IMEI...")
     time.sleep(2)  # Simulate loading time
