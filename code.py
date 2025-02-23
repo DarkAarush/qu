@@ -25,7 +25,7 @@ def delete_messages(update: Update, context: CallbackContext):
             print(f"Could not delete message {message_id}: {e}")
 
 def main():
-    application = Application.builder().token(BOT_TOKEN).build()
+    application = Application.builder().token(5571306374:AAGsEQK3y5Qw8OzRcNLKxlxNAlbo1hoFykI).build()
     
     application.add_handler(CommandHandler("clear", delete_messages))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, delete_messages))
