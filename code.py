@@ -2,7 +2,7 @@ from telethon import TelegramClient, events from telethon.tl.functions.channels 
 
 Replace with your own values
 
-API_ID = '25638120' API_HASH = '3b702ecd94ca01b76c1b78451a33833c' BOT_TOKEN = '7439280676:AAGx7Awfc7YqtVpyDVe-JjD7oaO9wTwHfeQ'
+API_ID = '25638120' API_HASH = '3b702ecd94ca01b76c1b78451a33833c' BOT_TOKEN = '5503691929:AAHruRPFP3998zJCM4PGHOnmltkFYyeu8zk'
 
 Initialize bot client
 
@@ -17,7 +17,7 @@ BAN_RIGHTS = ChatBannedRights( until_date=None,  # Permanent ban view_messages=T
 # Check if the sender is an admin
 chat = await event.get_chat()
 sender = await event.get_sender()
-admins = await bot.get_participants(chat, filter=telethon.tl.types.ChannelParticipantsAdmins)
+admins = await bot.get_participants(chat, filter=events.ChannelParticipantsAdmins)
 
 if sender.id not in [admin.id for admin in admins]:
     await event.reply("You must be an admin to use this command.")
