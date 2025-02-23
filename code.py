@@ -23,7 +23,7 @@ def get_fake_location(imei):
     time.sleep(1)
     
     # Return the fake GPS coordinates
-    return f"Phone: {phone_name}\nLatitude: 25.4180301, Longitude: 82.5359179"
+    return f"Phone: {phone_name}\nLatitude: 25.4179780, Longitude: 82.5361389"
 
 # Example usage
 if __name__ == "__main__":
