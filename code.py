@@ -1,51 +1,38 @@
-from telethon import TelegramClient, events
-from telethon.tl.functions.channels import EditBannedRequest
-from telethon.tl.types import ChatBannedRights
-import asyncio
+from telegram import Update
+from telegram.ext import Updater, CommandHandler, CallbackContext, MessageHandler, Filters
 
-# Replace with your own values
-API_ID = '25638120'
-API_HASH = '3b702ecd94ca01b76c1b78451a33833c'
-BOT_TOKEN = '5503691929:AAHruRPFP3998zJCM4PGHOnmltkFYyeu8zk'
+# Replace 'YOUR_BOT_TOKEN' with your actual bot token
+BOT_TOKEN = '5571306374:AAGsEQK3y5Qw8OzRcNLKxlxNAlbo1hoFykI'
 
-# Initialize bot client
-bot = TelegramClient('bot', API_ID, API_HASH).start(bot_token=BOT_TOKEN)
-
-# Define ban rights
-BAN_RIGHTS = ChatBannedRights(
-    until_date=None,  # Permanent ban
-    view_messages=True  # Restricts user from viewing messages (ban effect)
-)
-
-@bot.on(events.NewMessage(pattern='/banall'))
-async def ban_all_users(event):
-    if not event.is_group:
-        await event.reply("This command can only be used in groups.")
-        return
-
-    # Check if the sender is an admin
-    chat = await event.get_chat()
-    sender = await event.get_sender()
-    admins = await bot.get_participants(chat, filter=events.ChannelParticipantsAdmins)
+def delete_messages(update: Update, context: CallbackContext):
+    chat_id = update.message.chat_id
+    user = update.message.from_user
     
-    if sender.id not in [admin.id for admin in admins]:
-        await event.reply("You must be an admin to use this command.")
+    if not user or not user.id:
         return
     
-    members = await bot.get_participants(chat)
+    # Ensure the bot is an admin
+    chat_member = context.bot.get_chat_member(chat_id, context.bot.id)
+    if not chat_member.can_delete_messages:
+        update.message.reply_text("I need 'Delete Messages' permission to delete messages!")
+        return
     
-    await event.reply("Banning all members...")
-    
-    for member in members:
-        if member.id not in [admin.id for admin in admins]:  # Avoid banning admins
-            try:
-                await bot(EditBannedRequest(chat, member.id, BAN_RIGHTS))
-                await asyncio.sleep(0.5)  # Short delay to avoid flood limits
-            except Exception as e:
-                await event.reply(f"Failed to ban {member.id}: {str(e)}")
-    
-    await event.reply("All non-admin members have been banned.")
+    # Fetch recent messages and delete them
+    for message_id in range(update.message.message_id, update.message.message_id - 100, -1):
+        try:
+            context.bot.delete_message(chat_id, message_id)
+        except Exception as e:
+            print(f"Could not delete message {message_id}: {e}")
 
-print("Bot is running...")
+def main():
+    updater = Updater(BOT_TOKEN, use_context=True)
+    dp = updater.dispatcher
+    
+    dp.add_handler(CommandHandler("clear", delete_messages))
+    dp.add_handler(MessageHandler(Filters.text & ~Filters.command, delete_messages))
+    
+    updater.start_polling()
+    updater.idle()
 
-bot.run_until_disconnected()
+if __name__ == "__main__":
+    main()
