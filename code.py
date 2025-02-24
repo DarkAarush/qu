@@ -1,6 +1,7 @@
 import logging
 import json
 import os
+import random
 from telegram import Update, Poll
 from telegram.ext import (Updater, CommandHandler, CallbackContext, MessageHandler, Filters, JobQueue)
 
@@ -12,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 CHAT_IDS_FILE = 'chat_ids.json'
 QUIZ_INTERVAL = 30  # Interval in seconds between quizzes
+
+TOKEN = "5554891157:AAFG4gZzQ26-ynwQVEnyv1NlZ9Dx0Sx42Hg"
 
 def load_chat_data():
     if os.path.exists(CHAT_IDS_FILE):
@@ -30,17 +33,32 @@ def save_chat_data(chat_data):
 
 quizzes = [
     {"question": "What is the capital of France?", "options": ["Berlin", "Madrid", "Paris", "Rome"], "answer": "Paris"},
-    {"question": "What is 5 + 7?", "options": ["10", "11", "12", "13"], "answer": "12"}
+    {"question": "Which element has the chemical symbol 'O'?", "options": ["Gold", "Oxygen", "Silver", "Iron"], "answer": "Oxygen"},
+    {"question": "How many continents are there on Earth?", "options": ["5", "6", "7", "8"], "answer": "7"},
+    {"question": "What is the square root of 81?", "options": ["7", "8", "9", "10"], "answer": "9"},
+    {"question": "Who wrote 'Hamlet'?", "options": ["Charles Dickens", "William Shakespeare", "Leo Tolstoy", "Mark Twain"], "answer": "William Shakespeare"},
+    {"question": "Which planet is known as the Red Planet?", "options": ["Earth", "Mars", "Jupiter", "Venus"], "answer": "Mars"},
+    {"question": "What is the boiling point of water at sea level?", "options": ["90°C", "100°C", "110°C", "120°C"], "answer": "100°C"},
+    {"question": "What is the largest mammal in the world?", "options": ["Elephant", "Blue Whale", "Giraffe", "Hippopotamus"], "answer": "Blue Whale"},
+    {"question": "Which is the tallest mountain in the world?", "options": ["K2", "Kilimanjaro", "Mount Everest", "Denali"], "answer": "Mount Everest"},
+    {"question": "Who painted the ceiling of the Sistine Chapel?", "options": ["Michelangelo", "Leonardo da Vinci", "Raphael", "Donatello"], "answer": "Michelangelo"}
 ]
+
+random.shuffle(quizzes)
 
 def send_quiz(context: CallbackContext):
     job = context.job
-    chat_id = job.context
-    chat_data = load_chat_data()
-    if str(chat_id) not in chat_data:
-        return  # Stop sending quizzes if the chat is removed
+    chat_id = job.context["chat_id"]
+    used_questions = job.context["used_questions"]
+
+    available_quizzes = [q for q in quizzes if q not in used_questions]
+    if not available_quizzes:
+        job.schedule_removal()
+        return
     
-    quiz = quizzes[0]  # Can be randomized or rotated
+    quiz = random.choice(available_quizzes)
+    used_questions.append(quiz)
+
     try:
         context.bot.send_poll(
             chat_id=chat_id,
@@ -59,7 +77,7 @@ def start_quiz(update: Update, context: CallbackContext):
     save_chat_data(chat_data)
     update.message.reply_text("Quiz started!")
     
-    context.job_queue.run_repeating(send_quiz, interval=QUIZ_INTERVAL, first=0, context=chat_id)
+    context.job_queue.run_repeating(send_quiz, interval=QUIZ_INTERVAL, first=0, context={"chat_id": chat_id, "used_questions": []})
 
 def stop_quiz(update: Update, context: CallbackContext):
     chat_id = update.effective_chat.id
@@ -104,8 +122,6 @@ def start(update: Update, context: CallbackContext):
     update.message.reply_text("Welcome! Use /sendgroup to start a quiz in a group or /prequiz to start a quiz personally.")
 
 def main():
-    TOKEN = "5554891157:AAFG4gZzQ26-ynwQVEnyv1NlZ9Dx0Sx42Hg"
-    
     updater = Updater(TOKEN, use_context=True)
     dp = updater.dispatcher
     
