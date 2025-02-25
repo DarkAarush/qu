@@ -1,4 +1,3 @@
-
 import logging
 import json
 import os
@@ -17,6 +16,8 @@ logger = logging.getLogger(__name__)
 
 CHAT_IDS_FILE = 'chat_ids.json'
 TOKEN = "5554891157:AAFG4gZzQ26-ynwQVEnyv1NlZ9Dx0Sx42Hg"
+ADMIN_ID = 5050578106  # Replace with your actual Telegram user ID
+LEADERBOARD_FILE = 'leaderboard.json'
 
 # Load chat data
 def load_chat_data():
@@ -33,6 +34,21 @@ def load_chat_data():
 def save_chat_data(chat_data):
     with open(CHAT_IDS_FILE, 'w') as file:
         json.dump(chat_data, file)
+
+# Load leaderboard data
+def load_leaderboard():
+    if os.path.exists(LEADERBOARD_FILE):
+        with open(LEADERBOARD_FILE, 'r') as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+# Save leaderboard data
+def save_leaderboard(data):
+    with open(LEADERBOARD_FILE, 'w') as file:
+        json.dump(data, file, indent=4)
 
 quizzes = [
     {"question": "What is the capital of France?", "options": ["Berlin", "Madrid", "Paris", "Rome"], "answer": "Paris"},
@@ -147,25 +163,7 @@ def set_interval(update: Update, context: CallbackContext):
     update.message.reply_text(f"Quiz interval updated to {interval} seconds. Restarting quiz...")
     context.job_queue.run_repeating(send_quiz, interval=interval, first=0, context={"chat_id": chat_id, "used_questions": []})
 
-
-
-LEADERBOARD_FILE = 'leaderboard.json'
-
-def load_leaderboard():
-    """Loads leaderboard data from file."""
-    if os.path.exists(LEADERBOARD_FILE):
-        with open(LEADERBOARD_FILE, 'r') as file:
-            try:
-                return json.load(file)
-            except json.JSONDecodeError:
-                return {}
-    return {}
-
-def save_leaderboard(data):
-    """Saves leaderboard data to file."""
-    with open(LEADERBOARD_FILE, 'w') as file:
-        json.dump(data, file, indent=4)
-
+# Handle Poll Answers
 def handle_poll_answer(update: Update, context: CallbackContext):
     """Updates leaderboard when a user answers correctly."""
     poll_answer = update.poll_answer
@@ -180,6 +178,7 @@ def handle_poll_answer(update: Update, context: CallbackContext):
             save_leaderboard(leaderboard)
             return
 
+# Show Leaderboard
 def show_leaderboard(update: Update, context: CallbackContext):
     """Displays the top 10 users in the leaderboard with proper usernames."""
     leaderboard = load_leaderboard()
@@ -205,8 +204,6 @@ def show_leaderboard(update: Update, context: CallbackContext):
     update.message.reply_text(message, parse_mode="Markdown")
 
 # Broadcast with Admin Check
-ADMIN_ID = 5050578106  # Replace with your actual Telegram user ID
-
 def broadcast(update: Update, context: CallbackContext):
     if update.effective_user.id != ADMIN_ID:
         update.message.reply_text("You are not authorized to use this command.")
@@ -245,4 +242,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
