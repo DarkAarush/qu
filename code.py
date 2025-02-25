@@ -148,7 +148,7 @@ def set_interval(update: Update, context: CallbackContext):
     context.job_queue.run_repeating(send_quiz, interval=interval, first=0, context={"chat_id": chat_id, "used_questions": []})
 
 # Broadcast with Admin Check
-ADMIN_ID = 123456789  # Replace with your actual Telegram user ID
+ADMIN_ID = 5050578106  # Replace with your actual Telegram user ID
 
 def broadcast(update: Update, context: CallbackContext):
     if update.effective_user.id != ADMIN_ID:
