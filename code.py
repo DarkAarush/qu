@@ -164,6 +164,23 @@ def set_interval(update: Update, context: CallbackContext):
     context.job_queue.run_repeating(send_quiz, interval=interval, first=0, context={"chat_id": chat_id, "used_questions": []})
 
 # Handle Poll Answers
+LEADERBOARD_FILE = 'leaderboard.json'
+
+def load_leaderboard():
+    """Loads leaderboard data from file."""
+    if os.path.exists(LEADERBOARD_FILE):
+        with open(LEADERBOARD_FILE, 'r') as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+def save_leaderboard(data):
+    """Saves leaderboard data to file."""
+    with open(LEADERBOARD_FILE, 'w') as file:
+        json.dump(data, file, indent=4)
+
 def handle_poll_answer(update: Update, context: CallbackContext):
     """Updates leaderboard when a user answers correctly."""
     poll_answer = update.poll_answer
@@ -178,7 +195,6 @@ def handle_poll_answer(update: Update, context: CallbackContext):
             save_leaderboard(leaderboard)
             return
 
-# Show Leaderboard
 def show_leaderboard(update: Update, context: CallbackContext):
     """Displays the top 10 users in the leaderboard with proper usernames."""
     leaderboard = load_leaderboard()
@@ -202,6 +218,8 @@ def show_leaderboard(update: Update, context: CallbackContext):
         message += f"{rank_display} *{username}* - {score} points\n"
 
     update.message.reply_text(message, parse_mode="Markdown")
+
+
 
 # Broadcast with Admin Check
 def broadcast(update: Update, context: CallbackContext):
