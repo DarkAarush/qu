@@ -204,7 +204,6 @@ def show_leaderboard(update: Update, context: CallbackContext):
 
     update.message.reply_text(message, parse_mode="Markdown")
 
-
 # Broadcast with Admin Check
 ADMIN_ID = 5050578106  # Replace with your actual Telegram user ID
 
