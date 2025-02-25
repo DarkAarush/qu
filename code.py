@@ -147,6 +147,64 @@ def set_interval(update: Update, context: CallbackContext):
     update.message.reply_text(f"Quiz interval updated to {interval} seconds. Restarting quiz...")
     context.job_queue.run_repeating(send_quiz, interval=interval, first=0, context={"chat_id": chat_id, "used_questions": []})
 
+
+
+LEADERBOARD_FILE = 'leaderboard.json'
+
+def load_leaderboard():
+    """Loads leaderboard data from file."""
+    if os.path.exists(LEADERBOARD_FILE):
+        with open(LEADERBOARD_FILE, 'r') as file:
+            try:
+                return json.load(file)
+            except json.JSONDecodeError:
+                return {}
+    return {}
+
+def save_leaderboard(data):
+    """Saves leaderboard data to file."""
+    with open(LEADERBOARD_FILE, 'w') as file:
+        json.dump(data, file, indent=4)
+
+def handle_poll_answer(update: Update, context: CallbackContext):
+    """Updates leaderboard when a user answers correctly."""
+    poll_answer = update.poll_answer
+    user_id = str(poll_answer.user.id)
+    selected_option = poll_answer.option_ids[0] if poll_answer.option_ids else None
+    leaderboard = load_leaderboard()
+
+    for quiz in quizzes:
+        correct_option = quiz["options"].index(quiz["answer"])
+        if selected_option == correct_option:
+            leaderboard[user_id] = leaderboard.get(user_id, 0) + 1
+            save_leaderboard(leaderboard)
+            return
+
+def show_leaderboard(update: Update, context: CallbackContext):
+    """Displays the top 10 users in the leaderboard with proper usernames."""
+    leaderboard = load_leaderboard()
+
+    if not leaderboard:
+        update.message.reply_text("🏆 No scores yet! Start playing to appear on the leaderboard.")
+        return
+
+    sorted_scores = sorted(leaderboard.items(), key=lambda x: x[1], reverse=True)
+    message = "🏆 *Quiz Leaderboard* 🏆\n\n"
+    medals = ["🥇", "🥈", "🥉"]
+
+    for rank, (user_id, score) in enumerate(sorted_scores[:10], start=1):
+        try:
+            user = context.bot.get_chat(int(user_id))
+            username = f"@{user.username}" if user.username else f"{user.first_name} {user.last_name or ''}"
+        except Exception:
+            username = f"User {user_id}"
+
+        rank_display = medals[rank - 1] if rank <= 3 else f"#{rank}"
+        message += f"{rank_display} *{username}* - {score} points\n"
+
+    update.message.reply_text(message, parse_mode="Markdown")
+
+
 # Broadcast with Admin Check
 ADMIN_ID = 5050578106  # Replace with your actual Telegram user ID
 
@@ -179,6 +237,8 @@ def main():
     dp.add_handler(CommandHandler("prequiz", prequiz))
     dp.add_handler(CommandHandler("stopquiz", stop_quiz))
     dp.add_handler(CommandHandler("setinterval", set_interval))
+    dp.add_handler(PollAnswerHandler(handle_poll_answer))
+    dp.add_handler(CommandHandler("leaderboard", show_leaderboard))
     dp.add_handler(CommandHandler("broadcast", broadcast))
     
     updater.start_polling()
